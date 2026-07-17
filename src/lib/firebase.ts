@@ -1,5 +1,6 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
+import { getAI } from "firebase/ai";
 // import { getAuth } from "firebase/auth"; // Uncomment if using auth
 
 // Your web app's Firebase configuration
@@ -19,5 +20,8 @@ const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
 // Initialize Cloud Firestore and get a reference to the service
 export const db = getFirestore(app);
+
+// Initialize Vertex AI
+export const vertexAI = getAI(app);
 
 // export const auth = getAuth(app); // Uncomment if using auth

@@ -1,5 +1,6 @@
+import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { CalendarDays, Clock, Flame, GraduationCap, ListChecks, Sparkles, Target, TrendingUp } from "lucide-react";
+import { CalendarDays, Clock, Flame, GraduationCap, ListChecks, Sparkles, Target, TrendingUp, Loader2 } from "lucide-react";
 import { StatCard } from "@/components/StatCard";
 import { GlassCard } from "@/components/GlassCard";
 import { CircularProgress } from "@/components/CircularProgress";
@@ -7,7 +8,9 @@ import { PageHeader } from "@/components/PageHeader";
 import { useData, overallCompletion, totalHours, currentStreak, daysUntilExam, overdueRevisions } from "@/lib/storage";
 import { quoteOfTheDay } from "@/lib/quotes";
 import { Input } from "@/components/ui/input";
-
+import { Button } from "@/components/ui/button";
+import { estimateScoreWithAI } from "@/lib/ai";
+import { toast } from "sonner";
 export const Route = createFileRoute("/")({
   component: Dashboard,
   head: () => ({
@@ -17,6 +20,21 @@ export const Route = createFileRoute("/")({
 
 function Dashboard() {
   const { data, hydrated, updateSettings } = useData();
+  const [isEstimating, setIsEstimating] = useState(false);
+
+  async function handleEstimateScore() {
+    setIsEstimating(true);
+    try {
+      const { estimatedScore, reasoning } = await estimateScoreWithAI(data);
+      updateSettings({ estimatedScore });
+      toast.success("Score Estimated", { description: reasoning, duration: 10000 });
+    } catch (error) {
+      toast.error("Failed to estimate score", { description: "Please try again later." });
+    } finally {
+      setIsEstimating(false);
+    }
+  }
+
   if (!hydrated) return <div className="animate-pulse text-muted-foreground">Loading your progress…</div>;
 
   const days = daysUntilExam(data.settings.examDate);
@@ -91,14 +109,26 @@ function Dashboard() {
               <div className="text-xs text-muted-foreground">Target Rank ≤ {data.settings.targetRank}</div>
             </div>
             <div className="rounded-xl border border-white/5 bg-white/5 p-4">
-              <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground">
-                <TrendingUp className="h-3.5 w-3.5" /> Estimated Score
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground">
+                  <TrendingUp className="h-3.5 w-3.5" /> Estimated Score
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="h-7 text-xs px-2 gap-1"
+                  onClick={handleEstimateScore}
+                  disabled={isEstimating}
+                >
+                  {isEstimating ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3 text-primary" />}
+                  Auto-Calculate
+                </Button>
               </div>
               <Input
                 type="number"
                 value={data.settings.estimatedScore}
                 onChange={(e) => updateSettings({ estimatedScore: Number(e.target.value) })}
-                className="mt-1 h-10 bg-transparent text-2xl font-bold"
+                className="mt-1 h-10 bg-transparent text-2xl font-bold border-none px-0 focus-visible:ring-0"
               />
             </div>
           </div>

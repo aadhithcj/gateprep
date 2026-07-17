@@ -39,3 +39,9 @@ firebase-debug.*.log
 *.njsproj
 *.sln
 *.sw?
+
+# Vercel
+.vercel/
+
+# Scratch files
+test-ai.ts

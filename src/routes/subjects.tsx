@@ -45,7 +45,7 @@ function SubjectsPage() {
         title="Subjects"
         subtitle={`${totals?.completed ?? 0} of ${totals?.subjects ?? 0} subjects completed — expand to check off topics.`}
       />
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid items-start gap-4 md:grid-cols-2">
         {data.subjects.map((s) => {
           const completion = subjectCompletion(s);
           const status = subjectStatus(s);
