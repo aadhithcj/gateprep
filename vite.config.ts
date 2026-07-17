@@ -18,7 +18,7 @@ export default defineConfig(async ({ command }) => {
     const { nitro } = await import("nitro/vite");
     plugins.push(
       nitro({
-        defaultPreset: "cloudflare-module",
+        defaultPreset: "vercel",
       })
     );
   }
