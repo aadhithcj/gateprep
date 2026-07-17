@@ -1,4 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { db } from "./firebase";
 import type { AppData, Subject, Topic, TopicStatus, StudyLogEntry, MockTest, PYQRecord, Goal, Achievement, Settings } from "./types";
 import { DEFAULT_SUBJECTS } from "./syllabus";
 
@@ -86,14 +88,44 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    setDataState(loadData());
-    setHydrated(true);
+    async function initData() {
+      try {
+        const docRef = doc(db, "appData", "main");
+        const docSnap = await getDoc(docRef);
+        
+        let parsed: AppData;
+        if (docSnap.exists()) {
+          parsed = docSnap.data() as AppData;
+        } else {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          parsed = raw ? JSON.parse(raw) as AppData : makeDefaultData();
+        }
+
+        if (parsed.version !== DATA_VERSION) parsed = makeDefaultData();
+        const existingIds = new Set(parsed.subjects.map((s) => s.id));
+        for (const s of DEFAULT_SUBJECTS) {
+          if (!existingIds.has(s.id)) parsed.subjects.push(s);
+        }
+        if (!parsed.pyqs) parsed.pyqs = [];
+        
+        setDataState(parsed);
+      } catch (err) {
+        console.error("Error loading data:", err);
+        setDataState(loadData());
+      }
+      setHydrated(true);
+    }
+    initData();
   }, []);
 
   useEffect(() => {
     if (!hydrated) return;
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      const dataStr = JSON.stringify(data);
+      localStorage.setItem(STORAGE_KEY, dataStr);
+      const docRef = doc(db, "appData", "main");
+      const cleanData = JSON.parse(dataStr);
+      setDoc(docRef, cleanData).catch(console.error);
     } catch {}
   }, [data, hydrated]);
 
