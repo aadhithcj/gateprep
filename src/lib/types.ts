@@ -72,6 +72,7 @@ export interface Settings {
   estimatedScore: number;
   pomodoroStudy: number; // minutes
   pomodoroBreak: number;
+  predictedColleges?: string[];
 }
 
 export interface AppData {

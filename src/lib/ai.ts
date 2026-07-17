@@ -15,11 +15,17 @@ const responseSchema = {
       nullable: false,
       description: "A brief, encouraging explanation of why this score was estimated.",
     },
+    predictedColleges: {
+      type: SchemaType.ARRAY,
+      items: { type: SchemaType.STRING },
+      nullable: false,
+      description: "A list of 2-3 realistic M.Tech CSE colleges the student could get into with this score.",
+    },
   },
-  required: ["estimatedScore", "reasoning"],
+  required: ["estimatedScore", "reasoning", "predictedColleges"],
 };
 
-export async function estimateScoreWithAI(data: AppData): Promise<{ estimatedScore: number; reasoning: string }> {
+export async function estimateScoreWithAI(data: AppData): Promise<{ estimatedScore: number; reasoning: string; predictedColleges: string[] }> {
   try {
     const model = getGenerativeModel(vertexAI, {
       model: "gemini-3.5-flash",
@@ -51,7 +57,8 @@ Student Data:
 
 Based on this data, estimate the student's score. Be realistic but encouraging. 
 If they haven't taken any mock tests, estimate a baseline based on study logs or give a conservative estimate.
-Return the result as a JSON object with 'estimatedScore' (number) and 'reasoning' (string).
+Also, provide a list of 2-3 realistic M.Tech CSE colleges (like IITs, NITs, IIITs) the student has a chance of getting into with this estimated score.
+Return the result as a JSON object with 'estimatedScore' (number), 'reasoning' (string), and 'predictedColleges' (array of strings).
 `;
 
     const result = await model.generateContent(prompt);
@@ -62,6 +69,7 @@ Return the result as a JSON object with 'estimatedScore' (number) and 'reasoning
     return {
       estimatedScore: json.estimatedScore,
       reasoning: json.reasoning,
+      predictedColleges: json.predictedColleges,
     };
   } catch (error) {
     console.error("Error calculating estimated score with AI:", error);

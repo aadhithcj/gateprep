@@ -25,8 +25,8 @@ function Dashboard() {
   async function handleEstimateScore() {
     setIsEstimating(true);
     try {
-      const { estimatedScore, reasoning } = await estimateScoreWithAI(data);
-      updateSettings({ estimatedScore });
+      const { estimatedScore, reasoning, predictedColleges } = await estimateScoreWithAI(data);
+      updateSettings({ estimatedScore, predictedColleges });
       toast.success("Score Estimated", { description: reasoning, duration: 10000 });
     } catch (error) {
       toast.error("Failed to estimate score", { description: "Please try again later." });
@@ -52,9 +52,9 @@ function Dashboard() {
 
   return (
     <div className="space-y-8">
-      <PageHeader 
-        title="Good day, aadhith" 
-        subtitle="Every hour compounds. Let's make today count." 
+      <PageHeader
+        title="Good day, aadhith"
+        subtitle="Every hour compounds. Let's make today count."
         action={
           <div className="flex gap-2">
             <Link to="/log" className="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90">
@@ -113,9 +113,9 @@ function Dashboard() {
                 <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground">
                   <TrendingUp className="h-3.5 w-3.5" /> Estimated Score
                 </div>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
+                <Button
+                  variant="outline"
+                  size="sm"
                   className="h-7 text-xs px-2 gap-1"
                   onClick={handleEstimateScore}
                   disabled={isEstimating}
@@ -130,6 +130,24 @@ function Dashboard() {
                 onChange={(e) => updateSettings({ estimatedScore: Number(e.target.value) })}
                 className="mt-1 h-10 bg-transparent text-2xl font-bold border-none px-0 focus-visible:ring-0"
               />
+              {data.settings.predictedColleges && data.settings.predictedColleges.length > 0 && (
+                <div className="mt-2 border-t border-white/5 pt-3">
+                  <div className="text-[10px] uppercase tracking-widest text-muted-foreground mb-2">Predicted Admissions</div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {data.settings.predictedColleges.map((college, i) => (
+                      <a
+                        key={i}
+                        href={`https://www.google.com/search?q=${encodeURIComponent(college + " MTech CSE")}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center rounded-md bg-primary/10 px-2 py-1 text-[10px] font-medium text-primary ring-1 ring-inset ring-primary/20 hover:bg-primary/20 transition-colors cursor-pointer"
+                      >
+                        {college}
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </GlassCard>
@@ -151,19 +169,20 @@ function Dashboard() {
               {todaysTasks.map((t) => {
                 const subject = data.subjects.find(s => s.name === t.subject);
                 return (
-                <li key={t.topicId + t.date} className="flex items-center justify-between rounded-lg border border-white/5 bg-white/5 p-3">
-                  <div className="min-w-0">
-                    <div className="truncate text-sm font-medium">{t.topic}</div>
-                    <div className="flex items-center gap-1.5 truncate text-xs text-muted-foreground">
-                      {subject?.color && <svg viewBox="0 0 8 8" className={`h-2 w-2 ${subject.color} fill-current`}><circle cx="4" cy="4" r="4"/></svg>}
-                      {t.subject}
+                  <li key={t.topicId + t.date} className="flex items-center justify-between rounded-lg border border-white/5 bg-white/5 p-3">
+                    <div className="min-w-0">
+                      <div className="truncate text-sm font-medium">{t.topic}</div>
+                      <div className="flex items-center gap-1.5 truncate text-xs text-muted-foreground">
+                        {subject?.color && <svg viewBox="0 0 8 8" className={`h-2 w-2 ${subject.color} fill-current`}><circle cx="4" cy="4" r="4" /></svg>}
+                        {t.subject}
+                      </div>
                     </div>
-                  </div>
-                  <span className={"shrink-0 rounded-full px-2 py-0.5 text-[10px] " + (t.overdue ? "bg-destructive/20 text-destructive" : "bg-primary/20 text-primary")}>
-                    {t.overdue ? "Overdue" : "Due"}
-                  </span>
-                </li>
-              )})}
+                    <span className={"shrink-0 rounded-full px-2 py-0.5 text-[10px] " + (t.overdue ? "bg-destructive/20 text-destructive" : "bg-primary/20 text-primary")}>
+                      {t.overdue ? "Overdue" : "Due"}
+                    </span>
+                  </li>
+                )
+              })}
             </ul>
           )}
         </GlassCard>
@@ -183,17 +202,18 @@ function Dashboard() {
               {upcoming.map((t) => {
                 const subject = data.subjects.find(s => s.name === t.subject);
                 return (
-                <li key={t.topicId + t.date} className="flex items-center justify-between rounded-lg border border-white/5 bg-white/5 p-3">
-                  <div className="min-w-0">
-                    <div className="truncate text-sm font-medium">{t.topic}</div>
-                    <div className="flex items-center gap-1.5 truncate text-xs text-muted-foreground">
-                      {subject?.color && <svg viewBox="0 0 8 8" className={`h-2 w-2 ${subject.color} fill-current`}><circle cx="4" cy="4" r="4"/></svg>}
-                      {t.subject}
+                  <li key={t.topicId + t.date} className="flex items-center justify-between rounded-lg border border-white/5 bg-white/5 p-3">
+                    <div className="min-w-0">
+                      <div className="truncate text-sm font-medium">{t.topic}</div>
+                      <div className="flex items-center gap-1.5 truncate text-xs text-muted-foreground">
+                        {subject?.color && <svg viewBox="0 0 8 8" className={`h-2 w-2 ${subject.color} fill-current`}><circle cx="4" cy="4" r="4" /></svg>}
+                        {t.subject}
+                      </div>
                     </div>
-                  </div>
-                  <span className="shrink-0 text-xs text-muted-foreground">{new Date(t.date).toLocaleDateString()}</span>
-                </li>
-              )})}
+                    <span className="shrink-0 text-xs text-muted-foreground">{new Date(t.date).toLocaleDateString()}</span>
+                  </li>
+                )
+              })}
             </ul>
           )}
         </GlassCard>
