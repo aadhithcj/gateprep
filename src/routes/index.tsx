@@ -137,7 +137,7 @@ function Dashboard() {
                     {data.settings.predictedColleges.map((college, i) => (
                       <a
                         key={i}
-                        href={`https://www.google.com/search?q=${encodeURIComponent(college + " MTech CSE")}`}
+                        href={`https://www.google.com/search?q=${encodeURIComponent(college)}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center rounded-md bg-primary/10 px-2 py-1 text-[10px] font-medium text-primary ring-1 ring-inset ring-primary/20 hover:bg-primary/20 transition-colors cursor-pointer"
